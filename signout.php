@@ -1,19 +1,23 @@
 <?php
-session_start();
+include 'ex/ChromePhp.php'; // デバッグ用
+include 'main.php';
 
+session_start();
 if (isset($_SESSION["NAME"])) {
-  $errorMessage = "ログアウトしました。";
+  $errMsg = "ログアウトしました。";
 } else {
-  $errorMessage = "セッションがタイムアウトしました。";
+  $errMsg = "セッションがタイムアウトしました。";
 }
 // セッションの変数のクリア
 $_SESSION = array();
 
 // セッションクリア
-@session_destroy();
+session_destroy();
+header("Location: //localhost:8888/signin.php");
+
 ?>
 <!doctype html>
-<html>
+<html lang="ja">
   <head>
     <meta charset="UTF-8">
     <title>ログアウト</title>
@@ -21,7 +25,7 @@ $_SESSION = array();
 <body>
     <h1>ログアウト画面</h1>
     <div>
-      <?php echo htmlspecialchars($errorMessage, ENT_QUOTES); ?>
+      <?php echo h($errMsg); ?>
     </div>
     <ul>
       <li><a href="signin.php">ログイン画面に戻る</a></li>

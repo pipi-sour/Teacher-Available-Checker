@@ -23,7 +23,7 @@ th.sort {
   text-align: left;
 }
 
-.add-favs {
+#add-button {
   position: fixed;
   bottom: 80px;
   right: 24px;
@@ -31,7 +31,7 @@ th.sort {
   height: 56px;
 }
 
-.add-favs .material-icons {
+#add-button .material-icons {
   font-size: 24px;
 }
 
@@ -49,11 +49,6 @@ th.sort {
   vertical-align: text-top;
   font-size: 24px;
 }
-
-#search-bar mdl-textfield__label {
-  
-}
-
 
 #search-box .material-icons {
   font-size: 24px;
