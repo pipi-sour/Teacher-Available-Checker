@@ -85,3 +85,7 @@ th.sort {
 .mdl-layout__tab.is-active .icon-title {
   font-size: 14px;
 }
+
+.account-change-confirm {
+  display: none;
+}

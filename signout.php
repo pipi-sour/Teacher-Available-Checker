@@ -1,6 +1,13 @@
 <?php
-include 'ex/ChromePhp.php'; // デバッグ用
-include 'main.php';
+require_once 'ex/ChromePhp.php';
+require_once 'ex/main.php';
+
+error_reporting(E_ALL & ~E_NOTICE);
+
+if(isset($_SESSION['MESSAGE'])) {
+  $msg = $_SESSION['MESSAGE'];
+  $_SESSION['MESSAGE'] = "";
+}
 
 session_start();
 if (isset($_SESSION["NAME"])) {
@@ -13,7 +20,7 @@ $_SESSION = array();
 
 // セッションクリア
 session_destroy();
-header("Location: //localhost:8888/signin.php");
+header("Location: signin.php");
 
 ?>
 <!doctype html>

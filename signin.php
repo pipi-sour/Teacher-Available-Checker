@@ -1,21 +1,29 @@
 <?php
-include 'ex/ChromePhp.php'; // デバッグ用
-include 'main.php';
-
+require_once 'ex/ChromePhp.php';
+require_once 'ex/main.php';
 session_start();
-$pdo = connectDB();
-$errMsg = "";
 
-if (inputPost('signIn')) {
+error_reporting(E_ALL & ~E_NOTICE);
+
+if(isset($_SESSION['MESSAGE'])) {
+  $msg = $_SESSION['MESSAGE'];
+  $_SESSION['MESSAGE'] = "";
+}
+
+$pdo = connectDB();
+
+if (filter_has_var(INPUT_POST, 'signin-submit')) {
   $errFlag = 0;
   
   $user_mail = inputPost('mailAddress');
   $user_pass = inputPost('password');
   
   if (empty($user_mail)) {
-    $errMsg = 'ユーザーIDが未入力です。';
+    $mailErrMsg = 'メールアドレスが入力されていません。';
+    $errFlag = 1;
   } else if (empty($user_pass)) {
-    $errMsg = 'パスワードが未入力です。';
+    $passErrMsg = 'パスワードが入力されていません。';
+    $errFlag = 1;
   }
   
   if ($errFlag == 0) {
@@ -50,27 +58,43 @@ if (inputPost('signIn')) {
 <html lang="ja">
   <head>
     <meta charset="UTF-8">
+<?php require_once 'ex/header.php'; ?>
+    <link rel="stylesheet" href="ex/sign.css">
+    <script src="ex/sign.js"></script>
     <title>サインイン</title>
   </head>
   <body>
-    <h1>サインイン画面</h1>
-    <form id="loginForm" name="loginForm" action="" method="POST">
-    <fieldset>
-        <legend>ログインフォーム</legend>
-        <div><font color="#ff0000"><?php echo h($errMsg); ?></font></div>
-        <label for="mailAddress">ID (メールアドレス)</label><br>
-        <input type="text" id="mailAddress" name="mailAddress" placeholder="メールアドレス" value="<?php echo $user_mail; ?>"><br>
-        <label for="password">パスワード</label><br>
-        <input type="password" id="password" name="password" value="" placeholder="パスワード"><br>
-        <input type="submit" id="login" name="signIn" value="サインイン">
-      </fieldset>
-    </form>
-    <br>
-    <form action="signup.php">
-      <fieldset>          
-        <legend>新規登録フォーム</legend>
-        <input type="submit" value="新規登録">
-      </fieldset>
-    </form>
+    <main role="main">
+      <?php toaster($msg) ?>
+      <div id="sign-form-box">
+        <div id="sign-top-logo"><img src="ex/logo.png" alt="logo"></div>
+        <p class="err-msg"><?php echo $errMsg; ?></p>
+        <div id="signin-form">
+          <form name="signup-form" action="" method="POST">
+            <fieldset>
+              <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <i class="material-icons mdl-textfield__label__icon">email</i>
+                <input class="mdl-textfield__input" type="email" id="mailAddress" name="mailAddress" value="<?php echo $user_mail; ?>">
+                <label class="mdl-textfield__label" for="mailAddress">ID (メールアドレス)</label>
+                <span class="mdl-textfield__error">正しいメールアドレスを入力してください</span>
+              </div>
+              <p class="err-msg"><?php echo $mailErrMsg; ?></p>
+              <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <i class="material-icons mdl-textfield__label__icon">lock</i>
+                <input class="mdl-textfield__input" type="password" id="password" name="password">
+                <label class="mdl-textfield__label" for="password">パスワード</label>
+              </div>
+              <p class="err-msg"><?php echo $passErrMsg; ?></p>
+              <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" type="submit" id="sign-submit" name="signin-submit" value="submit">
+                サインイン
+              </button>
+            </fieldset>
+          </form>
+        </div>
+        <div id="sign-notice">
+          <p>アカウントをお持ちではありませんか？<a href="signup.php">新規登録</a></p>
+        </div>
+      </div>
+    </main>
   </body>
 </html>
