@@ -1,0 +1,115 @@
+body {
+  background-color: #8bc34a;
+}
+
+#sign-form-box {
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 480px;
+  margin: 64px calc(50% - 240px - 18px);
+  padding: 36px 36px;
+  background-color: #fff;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+}
+
+#sign-top-logo {
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 50%;
+  margin: 0 auto;
+}
+
+#sign-top-logo img {
+  width: 100%;
+}
+
+.mdl-textfield__label__icon {
+  position: absolute;
+  left: 0;
+  top: 24px;
+}
+
+.mdl-textfield {
+  width: 100%;
+}
+
+.mdl-textfield__label__icon {
+  width: 32px;
+}
+
+.mdl-textfield__input {
+  position: relative;
+  left: 32px;
+  width: calc(100% - 32px);
+  top: 0;
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.mdl-textfield.is-focused {
+  width: 100%;
+}
+
+.mdl-textfield__label {
+  position: absolute;
+  left: 32px;
+  top: 28px;
+  width: 100%;
+}
+
+.is-focused .mdl-textfield__label {
+  width: calc(100% - 32px);
+}
+
+#sign-submit {
+  margin: 1em 0;
+  position: relative;
+  width: 100%;
+  font-size: 20px;
+  padding: 8px;
+  height: 56px;
+}
+
+#sign-notice p {
+  text-align: center;
+}
+
+p.err-msg {
+  position: relative;
+  top: -4px;
+  left: 0;
+  color: red;
+  margin: 0;
+  font-size: 12px;
+}
+
+@media screen and (max-width: 480px) {
+  body {
+    background-color: #fff;
+  }
+  
+  .mdl-textfield {
+    width: 100%;
+  }
+  #sign-form-box {
+    width: 90%;
+    margin: 0;
+    padding: 36px 5%;
+    box-shadow: none;
+  }
+  
+  .mdl-textfield__input {
+    width: calc(95% - 16px);
+  }
+  
+  .mdl-textfield__label {
+    width: calc(95% - 16px);
+  }
+
+  .is-focused .mdl-textfield__label {
+    width: calc(95% - 16px);
+  }
+
+}

@@ -1,0 +1,17 @@
+{
+  "presets": ["es2015", "stage-0"],
+  "plugins": [
+    "transform-runtime",
+    "syntax-decorators",
+    "transform-decorators-legacy",
+    "babel-plugin-add-module-exports"
+  ],
+  "env": {
+    "es": {
+      "presets": [
+        ["es2015", { "modules": false }],
+        "stage-0"
+      ]
+    }
+  }
+}

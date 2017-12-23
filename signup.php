@@ -67,15 +67,6 @@ if (filter_has_var(INPUT_POST, 'signup-submit')) {
     $_SESSION['MESSAGE'] = "登録に成功しました。ログインしてください。";
     header("Location: signin.php");
     exit();
-    /*
-    print '
-      <script>
-        alert("登録に成功しました。ログインしてください。");
-        location.href = "signin.php";
-      </script>';
-    exit();
-     *
-     */
   }
 }
 ?>
@@ -84,8 +75,8 @@ if (filter_has_var(INPUT_POST, 'signup-submit')) {
   <head>
     <meta charset="UTF-8">
 <?php require_once 'ex/header.php'; ?>
-    <link rel="stylesheet" href="ex/sign.css">
-    <script src="ex/sign.js"></script>
+    <link rel="stylesheet" href="ex/css/sign.css">
+    <script src="ex/js/sign.js"></script>
     <title>新規登録</title>
   </head>
   <body>
@@ -97,11 +88,11 @@ if (filter_has_var(INPUT_POST, 'signup-submit')) {
             <fieldset>
               <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label ">
                 <i class="material-icons mdl-textfield__label__icon">email</i>
-                <input class="mdl-textfield__input" type="email" id="mailAddress" name="mailAddress" value="<?php echo $user_mail; ?>">
+                <input class="mdl-textfield__input" type="email" id="mailAddress" name="mailAddress" minlength="6" maxlength="255" value="<?php echo $user_mail; ?>">
                 <label class="mdl-textfield__label" for="mailAddress">ID (メールアドレス)</label>
                 <span class="mdl-textfield__error">正しいメールアドレスを入力してください</span>
               </div>
-              <p class="err-msg"><?php echo $mailErrMsg; ?></p>
+              <p class="err-msg"><?php echo h($mailErrMsg); ?></p>
               <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                 <i class="material-icons mdl-textfield__label__icon">person</i>
                 <input class="mdl-textfield__input" type="text" id="username" name="username" minlength="2" maxlength="16" value="<?php echo $user_name; ?>">

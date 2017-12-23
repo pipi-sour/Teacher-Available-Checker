@@ -40,7 +40,7 @@ if (filter_has_var(INPUT_POST, 'signin-submit')) {
         $_SESSION['NAME'] = $res['name'];
         $_SESSION['MAIL'] = $res['mail'];
         
-        header("Location: //localhost:8888/index.php");  // メイン画面へ遷移
+        header("Location: index.php");  // メイン画面へ遷移
         exit();  // 処理終了
       } else {
         // 認証失敗
@@ -59,13 +59,13 @@ if (filter_has_var(INPUT_POST, 'signin-submit')) {
   <head>
     <meta charset="UTF-8">
 <?php require_once 'ex/header.php'; ?>
-    <link rel="stylesheet" href="ex/sign.css">
-    <script src="ex/sign.js"></script>
+    <link rel="stylesheet" href="ex/css/sign.css">
+    <script src="ex/js/sign.js"></script>
     <title>サインイン</title>
   </head>
   <body>
+<?php toaster($msg, $mode) ?>
     <main role="main">
-      <?php toaster($msg) ?>
       <div id="sign-form-box">
         <div id="sign-top-logo"><img src="ex/logo.png" alt="logo"></div>
         <p class="err-msg"><?php echo $errMsg; ?></p>
