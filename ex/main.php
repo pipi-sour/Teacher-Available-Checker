@@ -1,12 +1,15 @@
 <?php
+// HTMLにエスケープ
 function h($text) {
   return htmlspecialchars($text, ENT_QUOTES);
 }
 
+// スーパーグローバル変数の直接使用を回避
 function inputPost($target) {
   return (string)filter_input(INPUT_POST, $target, FILTER_SANITIZE_SPECIAL_CHARS);
 }
 
+// データベースに接続
 function connectDB() {
   $db_user = 'root';
   $db_pass = 'root';
@@ -25,14 +28,16 @@ function connectDB() {
   }
 }
 
+// データベースの1つの値を取得
 function getDBValue($pdo, $field, $table, $mail) {
   $sqlg = "SELECT $field FROM $table WHERE mail = '$mail'";
-  //$pdo = connectDB();
   $stmtg = $pdo->query($sqlg);
   $res = $stmtg->fetch();
   return $res[$field];
 }
 
+
+// データベースの1つの値を更新
 function updateDBValue($pdo, $field, $table, $value, $mail) {
   if($value == 'NULL') {
     $sqlu = "UPDATE $table SET $field = NULL WHERE mail = '$mail'";
@@ -44,16 +49,17 @@ function updateDBValue($pdo, $field, $table, $value, $mail) {
   $pdo->commit();
 }
 
+// ローマ字表記の教員名から和名を調べる
 function getTNameJP($tname) {
   $pdo = connectDB();
   $stmt = $pdo->prepare('SELECT * FROM status WHERE name_en = ?');
   $stmt->bindValue(1, $tname);
   $stmt->execute();
   $res = $stmt->fetch(PDO::FETCH_ASSOC);
-  $pdo = null;
   return $res['name'];
 }
 
+// セッション情報からトーストメッセージとモードを取得しJavaScriptに書き出し
 function toaster($msg, $mode) {
   if($msg != "") {
     print '
@@ -63,6 +69,7 @@ function toaster($msg, $mode) {
   }
 }
 
+// データベース上に既にメールアドレスが登録されていないか調べる
 function mailDuplicationCheck($mail) {
   $flag = 0; $i = 0;
   $pdo = connectDB();
@@ -80,6 +87,7 @@ function mailDuplicationCheck($mail) {
   }
 }
 
+// パスワードが正しいか検証する
 function passVerify($mail, $pass) {
   $pdo = connectDB();
   $stmt = $pdo->prepare('SELECT * FROM account WHERE mail = ?');
@@ -94,6 +102,7 @@ function passVerify($mail, $pass) {
   }
 }
 
+// サインアウトする
 function signOut() {
   $_SESSION = array();
   session_destroy();

@@ -1,10 +1,10 @@
 <?php
-require_once 'ex/ChromePhp.php';
 require_once 'ex/main.php';
 session_start();
 
 error_reporting(E_ALL & ~E_NOTICE);
 
+// トーストメッセージを表示
 if (isset($_SESSION['MESSAGE'])) {
   $msg = $_SESSION['MESSAGE'];
   $mode = $_SESSION['MESSAGE_MODE'];
@@ -39,7 +39,6 @@ $stmt_tstat->bindValue(4, $tname4);
 $stmt_tstat->execute();
 $tstat = $stmt_tstat->fetchAll(PDO::FETCH_ASSOC);
 
-
 // -- お気に入り設定 --
 
 // お気に入り追加・削除のリクエストを取得
@@ -52,26 +51,24 @@ if (!empty($add_fav) && $add_fav != 'NULL') {
   // DBでNULLとなっているtnameフィールドに格納
   if (is_null($tname1)) {
     updateDBValue($pdo, 'tname1', 'account', $add_fav, $mail);
-    
   } else if (is_null($tname2)) {
     updateDBValue($pdo, 'tname2', 'account', $add_fav, $mail);
-    
   } else if (is_null($tname3)) {
     updateDBValue($pdo, 'tname3', 'account', $add_fav, $mail);
-    
   } else if (is_null($tname4)) {
     updateDBValue($pdo, 'tname4', 'account', $add_fav, $mail);
-    
   }
   
   // 教員の和名を取得
   $tname_jp = getTNameJP($add_fav);
   
+  // トーストメッセージを追加
   $_SESSION['MESSAGE_MODE'] = "success";
   $_SESSION['MESSAGE'] = $tname_jp . "教員を追加しました";
   
-  // お気に入り表を更新するためページを再読み込み
+  // DBを更新するためページを再読み込み
   header("Location: " . (string)filter_input(INPUT_SERVER, 'PHP_SELF'));
+  exit();
 }
 
 // お気に入り削除のリクエストが入力されたとき
@@ -80,35 +77,37 @@ if (!empty($del_fav) && $del_fav != 'NULL') {
   // 該当するtnameフィールドの値をNULLとし削除
   if ($del_fav == $tname1) {
     updateDBValue($pdo, 'tname1', 'account', 'NULL', $mail);
-    
   } else if ($del_fav == $tname2) {
     updateDBValue($pdo, 'tname2', 'account', 'NULL', $mail);
-    
   } else if ($del_fav == $tname3) {
     updateDBValue($pdo, 'tname3', 'account', 'NULL', $mail);
-    
   } else if ($del_fav == $tname4) {
     updateDBValue($pdo, 'tname4', 'account', 'NULL', $mail);
-    
   }
   
   // 教員の和名を取得
   $tname_jp = getTNameJP($del_fav);
   
+  // トーストメッセージを作成
   $_SESSION['MESSAGE_MODE'] = "success";
   $_SESSION['MESSAGE'] = $tname_jp . "教員を削除しました";
   
   // お気に入り表を更新するためページを再読み込み
   header("Location: " . (string)filter_input(INPUT_SERVER, 'PHP_SELF'));
+  exit();
 }
 
-//テーブルを
+// 表を生成
 function tableGenerate($result) {
+  
+  // データが無い場合は表を生成しない
   if($result == NULL) {
     echo '<table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp avlb-table" style="display:none">';
   } else {
     echo '<table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp avlb-table">';
   }
+  
+  // 表のヘッダ部分を生成
   echo '
       <thead>
         <tr>
@@ -121,13 +120,18 @@ function tableGenerate($result) {
         </tr>
       </thead>
       <tbody class="list">';
+  
+  // 表のデータ部分を生成
   foreach($result as $i) {
+    
+    // 在室状況の表示形式
     if ($i ['available'] == 1) {
       $stat_av = '<span style="color:blue">在室</span>';
     } else {
       $stat_av = '<span style="color:red">不在</span>';
     }
 
+    // 赤外線の表示形式
     if ($i ['infrared'] == 1) {
       $stat_ir = "◯";
     } else if ($i ['infrared'] == 0) {
@@ -136,12 +140,14 @@ function tableGenerate($result) {
       $stat_ir = "×";
     }
 
+    // 蛍光灯の表示形式
     if ($i ['light'] == 1) {
       $stat_lg = "◯";
     } else {
       $stat_lg = "×";
     }
 
+    // データ形式通りに表を生成
     echo '
         <tr>
           <td class="mdl-data-table__cell--non-numeric department">' . strtoupper($i["department"]). '</td>' . '
@@ -153,31 +159,47 @@ function tableGenerate($result) {
           <td class="mdl-data-table__cell--non-numeric time">' . date("m/d H:i", strtotime($i ['time'])) . '</td>' . '
         </tr>';
   }
+  
   echo '
       </tbody>
     </table>';
 }
 
+// お気に入り表の生成
 function favTableGenerate($result) {
+  
+  // 表の生成
   tableGenerate($result);
+  
+  // データが無い場合はその旨を表示
   if(count($result) == 0) {
     echo 'お気に入りに何も登録されていません。';
   }
 }
 
+// 全教員表の生成
 function allTableGenerate($pdo) {
+  
+  // 全教員のステータスを読み込み、表示
   $stmt_all = $pdo->query('SELECT * FROM status');
   $result_all = $stmt_all->fetchAll(PDO::FETCH_ASSOC);
   tableGenerate($result_all);
 }
 
+// お気に入り追加セレクタの生成
 function favAddSelector($pdo, $result, $tname1, $tname2, $tname3, $tname4) {
+  
+  // お気に入り教員が上限まで登録されていないか
   if(count($result) != 4) {
+    
+    // フォーム部分を生成
     echo
      '<form action="" method="post" name="add-fav-submit">
         <div class="mdlext-selectfield mdlext-js-selectfield">
           <select class="mdlext-selectfield__select" name="add_fav" onchange="submit(this.form)">
             <option value="NULL">---</option>';
+    
+    // 選択肢を生成
     foreach ($pdo->query('SELECT * FROM status ORDER BY department ASC') as $i) {
       if ($i["name_en"] != $tname1 && $i["name_en"] != $tname2 && $i["name_en"] != $tname3 && $i["name_en"] != $tname4) {
         echo
@@ -188,18 +210,27 @@ function favAddSelector($pdo, $result, $tname1, $tname2, $tname3, $tname4) {
          '</select>
         </div>
       </form>';
+    
+  // お気に入り教員が上限まで登録されていたらフォームを表示しない
   } else {
     echo 'お気に入りの登録の上限に達しています (上限数: ' . (int)count($result) . ')';
   }
 }
 
+// お気に入り削除セレクタの生成
 function favDelSelector($result) {
+  
+  // お気に入り教員の登録が0でないか
   if(count($result) != 0) {
+    
+    // フォーム部分を生成
     echo 
-     '<form action="" method="post">
+     '<form action="" method="POST">
         <div class="mdlext-selectfield mdlext-js-selectfield">
           <select class="mdlext-selectfield__select" name="del_fav" onchange="submit(this.form)">
             <option value="NULL">---</option>';
+    
+    // 選択肢を生成
     foreach ($result as $i) {
       echo
          '<option value="' . $i["name_en"] . '">[' . strtoupper($i["department"])  . ']' . $i["name"] . '</option>';
@@ -208,6 +239,8 @@ function favDelSelector($result) {
          '</select>
         </div>
       </form>';
+    
+  // お気に入り教員が何も登録されていなかったらフォームを表示しない
   } else {
     echo "お気に入りに何も登録されていません。";
   }
@@ -215,60 +248,97 @@ function favDelSelector($result) {
 
 // -- 通知関連 --
 
-function getNtfAvailable($mail) {
-  $pdo = connectDB();
-  $stmt_checked = $pdo->prepare('SELECT notification FROM account WHERE mail = ?');
-  $stmt_checked->bindValue(1, $mail);
-  $stmt_checked->execute();
-  $res = $stmt_checked->fetch(PDO::FETCH_ASSOC);
-  if($res['notification'] == 1) {
-    return "checked";
-  } else {
-    return "";
+// DB上で通知がONに設定されていたらスイッチをオンに表示
+function getNtfAvailable($pdo, $mail) {
+  
+  $res = getDBValue($pdo, 'notification', 'account', $mail);
+  if($res == 1) {
+    echo "checked";
   }
 }
 
+// 通知の有効化スイッチが変更されたら
 if (filter_has_var(INPUT_POST, 'ntfSwitcher')) {
   
+  // DB更新の準備
   $ntfEnable = inputPost('ntfSwitcher');
   $pdo->beginTransaction();
   $stmt_setNtfEnable = $pdo->prepare('UPDATE account SET notification = ? WHERE mail = ?');
+  
+  // OFF->ON
   if($ntfEnable == 1) {
     $stmt_setNtfEnable->bindValue(1, 1);
     $_SESSION['MESSAGE'] = "通知設定をONにしました。";
     $_SESSION['MESSAGE_MODE'] = "success";
+  // ON->OFF
   } else {
     $stmt_setNtfEnable->bindValue(1, 0);
     $_SESSION['MESSAGE'] = "通知設定をOFFにしました。";
     $_SESSION['MESSAGE_MODE'] = "success";
   }
+  
+  // DBを更新
   $stmt_setNtfEnable->bindValue(2, $mail);
   $stmt_setNtfEnable->execute();
   $pdo->commit();
+  
+  // DBを更新するためページを再読み込み
   header("Location: " . (string)filter_input(INPUT_SERVER, 'PHP_SELF'));
   exit();
 }
 
+// DB上で設定されている通知スケジュールを表示
+function displayNtfTime($pdo, $mail) {
+  
+  // DB上からデータを取得
+  $stmt_getNtfTime = $pdo->prepare('SELECT * FROM account WHERE mail = ?');
+  $stmt_getNtfTime->bindValue(1, $mail);
+  $stmt_getNtfTime->execute();
+  $res = $stmt_getNtfTime->fetch(PDO::FETCH_ASSOC);
+  
+  // 通知未設定（NULL）のとき
+  if($res['notification_date_begin'] == NULL) {
+    echo '現在メール通知期間は設定されていません。<br>メール通知は'
+        . '<span id="date-begin-display">(開始日)</span>から'
+        . '<span id="date-end-display">(終了日)</span> の '
+        . '<span id="time-begin-display">(開始時刻)</span>から'
+        . '<span id="time-end-display">(終了時刻)</span> の間に3分間隔で行われます。';
+  // 通知が設定されているとき
+  } else {
+    echo '現在の設定: '
+      .  date("Y月m月d日", strtotime($res['notification_date_begin'])) . '~'
+      .  date("Y年m月d日", strtotime($res['notification_date_end'])) . ' '
+      .  date("H時i分", strtotime($res['notification_time_begin'])) . '~'
+      .  date("H時i分", strtotime($res['notification_time_end'])) . '<br>';
+  }
+  
+}
+
+// 通知時間の設定変更が送信されたら
 if (filter_has_var(INPUT_POST, 'notification-time-submit')) {
   
+  // 隠し入力フィールドから値を取得
   $ndb = inputPost('date-begin-output');
   $nde = inputPost('date-end-output');
   $ntb = inputPost('time-begin-output');
   $nte = inputPost('time-end-output');
   
-  if ($ndb == "" || $nde == "" || $ntb == "" || $nte == "")  {
+  // 日付か時刻が空欄で送信されたらエラー
+  if (empty($ndb) || empty($nde) || empty($ntb) || empty($nte))  {
     $_SESSION['MESSAGE'] = "日付または時刻が空欄です。";
     $_SESSION['MESSAGE_MODE'] = "error";
-    
+  // 通知開始の日付が終了よりあとに設定されていたらエラー
   } else if($ndb > $nde) {
     $_SESSION['MESSAGE'] = "終了日付が開始日付より過去に設定されています。";
     $_SESSION['MESSAGE_MODE'] = "error";
-    
+  // 通知開始の時刻が終了よりあとに設定されていたらエラー
   } else if($ntb > $nte) {
     $_SESSION['MESSAGE'] = "終了時刻が開始時刻より過去に設定されています。";
     $_SESSION['MESSAGE_MODE'] = "error";
-    
+  // すべて正しく入力されていたら
   } else {
+    
+    // 更新
     $pdo->beginTransaction();
     $stmt_ntfTime = $pdo->prepare('UPDATE account SET '
             . 'notification_date_begin = STR_TO_DATE(? ,"%Y%m%d"), '
@@ -284,70 +354,55 @@ if (filter_has_var(INPUT_POST, 'notification-time-submit')) {
     $stmt_ntfTime->execute();
     $pdo->commit();
 
+    // トーストメッセージを表示
     $_SESSION['MESSAGE'] = "通知期間設定を更新しました。";
     $_SESSION['MESSAGE_MODE'] = "success";
   }
+  
+  // DBを更新するためページを再読み込み
   header("Location: " . (string)filter_input(INPUT_SERVER, 'PHP_SELF'));
   exit();
 }
 
-function displayNtfTime($mail) {
-  $pdo = connectDB();
-  $stmt_getNtfTime = $pdo->prepare('SELECT * FROM account WHERE mail = ?');
-  $stmt_getNtfTime->bindValue(1, $mail);
-  $stmt_getNtfTime->execute();
-  $res = $stmt_getNtfTime->fetch(PDO::FETCH_ASSOC);
-  if($res['notification_date_begin'] == NULL) {
-    echo '現在メール通知期間は設定されていません。<br>メール通知は'
-        . '<span id="date-begin-display">(開始日)</span>から'
-        . '<span id="date-end-display">(終了日)</span> の '
-        . '<span id="time-begin-display">(開始時刻)</span>から'
-        . '<span id="time-end-display">(終了時刻)</span> の間に3分間隔で行われます。';
-  } else {
-    echo '現在の設定: '
-      .  date("Y月m月d日", strtotime($res['notification_date_begin'])) . '~'
-      .  date("Y年m月d日", strtotime($res['notification_date_end'])) . ' '
-      .  date("H時i分", strtotime($res['notification_time_begin'])) . '~'
-      .  date("H時i分", strtotime($res['notification_time_end'])) . '<br>';
-  }
-  echo '<b><span id="date-begin-display">(開始日)</span></b>から'
-     . '<b><span id="date-end-display">(終了日)</span></b> の '
-     . '<b><span id="time-begin-display">(開始時刻)</span></b>から'
-     . '<b><span id="time-end-display">(終了時刻)</span></b> の間に3分間隔で行われます。';
-}
 // -- アカウント関連 --
+
+// サインアウト
+if (filter_has_var(INPUT_POST, 'signout-submit')) {
+  signOut();
+  header("Location: signin.php");
+}
 
 // メールアドレスの変更
 if (filter_has_var(INPUT_POST, 'account-change-mail-submit')) {
   
   // 入力された新しいメールアドレス
-  $acc_mail = inputPost('account-new-mail');
+  $acc_mail = h(inputPost('account-new-mail'));
   
   // メールアドレスが空欄でないかどうか
-  if($acc_mail == "") {
+  if(empty($acc_mail)) {
     $_SESSION['MESSAGE'] = "メールアドレスが空欄です";
     $_SESSION['MESSAGE_MODE'] = "error";
-    // 現在のメールアドレスと新しいメールアドレスが同じでないかどうか
+  // 現在のメールアドレスと新しいメールアドレスが同じでないかどうか
   } else if($mail == $acc_mail) {
     $_SESSION['MESSAGE'] = "現在のメールアドレスと同じです";
     $_SESSION['MESSAGE_MODE'] = "error";
+  // 既に登録されているメールアドレスでないかどうか
   } else if(!mailDuplicationCheck($acc_mail)) {
     $_SESSION['MESSAGE'] = "そのメールアドレスはすでに登録されています。";
     $_SESSION['MESSAGE_MODE'] = "error";
-  } else if(mailDuplicationCheck($acc_mail)) {
-    $pdo->beginTransaction();
-    $stmt_accName = $pdo->prepare("UPDATE account SET mail = ? WHERE mail = ?");
-    $stmt_accName->bindValue(1, $acc_mail);
-    $stmt_accName->bindValue(2, $mail);
-    $stmt_accName->execute();
-    $pdo->commit();
+  // 入力内容が正しければ
+  } else {
+    
+    //更新
+    updateDBValue($pdo, 'mail', 'account', $acc_mail, $mail);
+    
+    // セッションのメールアドレスを更新してトーストメッセージを表示
     $_SESSION['MAIL'] = $acc_mail;
     $_SESSION['MESSAGE'] = "メールアドレスを" . $acc_mail . "に変更しました。";
     $_SESSION['MESSAGE_MODE'] = "success";
-  } else {
-    $_SESSION['MESSAGE'] = "予期せぬエラーです";
-    $_SESSION['MESSAGE_MODE'] = "error";
   }
+  
+  // DBを更新するためページを再読み込み
   header("Location: " . (string)filter_input(INPUT_SERVER, 'PHP_SELF'));
   exit();
 }
@@ -356,33 +411,30 @@ if (filter_has_var(INPUT_POST, 'account-change-mail-submit')) {
 if (filter_has_var(INPUT_POST, 'account-change-name-submit')) {
   
   // 入力された新しいユーザー名
-  $acc_name = inputPost('account-new-name');
+  $acc_name = h(inputPost('account-new-name'));
   
-  // 現在のユーザー名と新しいユーザーが同じでないかどうか
-  if($acc_name == "") {
-    
+  // ユーザー名が空欄でないかどうか
+  if(empty($acc_name)) {
     $_SESSION['MESSAGE'] = "ユーザー名が空欄です。";
     $_SESSION['MESSAGE_MODE'] = "error";
-    
+  // 現在のユーザー名と新しいユーザーが同じでないかどうか
   } else if($name == $acc_name) {
-    
     $_SESSION['MESSAGE'] = "新しいユーザー名が現在のユーザー名と同じです。";
     $_SESSION['MESSAGE_MODE'] = "error";
-    
+  // 入力が正しければ
   } else {
-    $pdo->beginTransaction();
-    $stmt_accName = $pdo->prepare("UPDATE account SET name = ? WHERE mail = ?");
-    $stmt_accName->bindValue(1, $acc_name);
-    $stmt_accName->bindValue(2, $mail);
-    $stmt_accName->execute();
-    $pdo->commit();
+    
+    // 更新
+    updateDBValue($pdo, 'name', 'account', $acc_name, $mail);
 
+    // セッションのユーザー名を更新してトーストメッセージを表示
     $_SESSION['NAME'] = $acc_name;
     $_SESSION['MESSAGE'] = "ユーザー名を" . $acc_name . "に変更しました";
     $_SESSION['MESSAGE_MODE'] = "success";
 
   }
 
+  // DBを更新するためページを再読み込み
   header("Location: " . (string)filter_input(INPUT_SERVER, 'PHP_SELF'));
   exit();
 }
@@ -390,40 +442,39 @@ if (filter_has_var(INPUT_POST, 'account-change-name-submit')) {
 // パスワードの変更
 if(filter_has_var(INPUT_POST, 'account-change-pass-submit')) {
   
-  $acc_oldpass = inputPost('account-old-pass');
-  $acc_newpass = inputPost('account-new-pass');
-  $acc_confpass = inputPost('account-new-pass-conf');
+  // 入力された現在のパスワード、新しいパスワード、確認用の新しいパスワード
+  $acc_oldpass = h(inputPost('account-old-pass'));
+  $acc_newpass = h(inputPost('account-new-pass'));
+  $acc_confpass = h(inputPost('account-new-pass-conf'));
   
+  // 入力内容が空欄でないかどうか
+  if (empty($acc_oldpass) || empty($acc_newpass) || empty($acc_confpass)) {
+    $_SESSION['MESSAGE'] = "入力内容に空欄があります。";
+    $_SESSION['MESSAGE_MODE'] = "error";
+  // 現在のパスワードが間違っていないかどうか
+  } else if (!passVerify($mail, $acc_oldpass)) {
+    $_SESSION['MESSAGE'] = "現在のパスワードに誤りがあります。";
+    $_SESSION['MESSAGE_MODE'] = "error";
   // 新しいパスワードと確認用パスワードが一致しているかどうか
-  if($acc_newpass === $acc_confpass) {
-    
-    // 現在のパスワードと新しいパスワードが同じでないかどうか
-    if($acc_oldpass !== $acc_newpass) {
-      
-      // 現在のパスワードが正しいかどうか
-      if(passVerify($mail, $acc_oldpass)) {
-        $pdo->beginTransaction();
-        $pass_hash = password_hash($acc_newpass, PASSWORD_DEFAULT);
-        $stmt_suc = $pdo->prepare("UPDATE account SET passwd = ? WHERE mail = ?");
-        $stmt_suc->bindValue(1, $pass_hash);
-        $stmt_suc->bindValue(2, $mail);
-        $stmt_suc->execute();
-        $pdo->commit();
-        
-        signOut("パスワードを変更しました。再度サインインしてください。");
-        exit();
-      } else {
-        $_SESSION['MESSAGE'] = "現在のパスワードに誤りがあります。";
-        $_SESSION['MESSAGE_MODE'] = "error";
-      }
-    } else {
-      $_SESSION['MESSAGE'] = "現在のパスワードと新しいパスワードが同じです。";
-      $_SESSION['MESSAGE_MODE'] = "error";
-    }
-  } else {
+  } else if ($acc_newpass != $acc_confpass) {
     $_SESSION['MESSAGE'] = "確認用のパスワードに誤りがあります。";
     $_SESSION['MESSAGE_MODE'] = "error";
+  // 現在のパスワードと新しいパスワードが異なっているかどうか
+  } else if ($acc_oldpass == $acc_newpass) {
+    $_SESSION['MESSAGE'] = "現在のパスワードと新しいパスワードが同じです。";
+    $_SESSION['MESSAGE_MODE'] = "error";
+  // 正しく入力されていたら
+  } else {
+    
+    // 更新
+    updateDBValue($pdo, 'passwd', 'account', $pass_hash, $mail);
+
+    // サインアウト
+    signOut();
+    exit();
   }
+
+  // DBを更新するためページを再読み込み（正しく終了した場合はexit()で既に終了している）
   header("Location: " . (string)filter_input(INPUT_SERVER, 'PHP_SELF'));
   exit();
 }
@@ -431,39 +482,31 @@ if(filter_has_var(INPUT_POST, 'account-change-pass-submit')) {
 // アカウント削除
 if (filter_has_var(INPUT_POST, 'account-delete-submit')) {
   
-  $acc_del = inputPost('account-delete-pass');
-  
-  $stmt_accDel = $pdo->prepare("SELECT * FROM account WHERE mail = ?");
-  $stmt_accDel->bindValue(1, $mail);
-  $stmt_accDel->execute();
-  $res_accDel = $stmt_accDel->fetch(PDO::FETCH_ASSOC);
+  // パスワード
+  $acc_del = h(inputPost('account-delete-pass'));
+  $res = getDBValue($pdo, 'passwd', 'account', $mail);
 
-  if (password_verify($acc_del, $res_accDel['passwd'])) {
+  // パスワードが正しければ
+  if (password_verify($acc_del, $res['passwd'])) {
     
+    // アカウントを削除
     $stmt_accDel2 = $pdo->prepare("DELETE FROM account WHERE mail = ?");
     $stmt_accDel2->bindValue(1, $mail);
     $stmt_accDel2->execute();
     
+    // サインアウト
     signOut();
-    exit();
-  }
-}
-?>
 
+  } else {
+    $_SESSION['MESSAGE'] = "入力されたパスワードに誤りがあります。";
+    $_SESSION['MESSAGE_MODE'] = "error";
+    header("Location: " . (string)filter_input(INPUT_SERVER, 'PHP_SELF'));
+  }
+  exit();
+}
+
+?>
 <!doctype html>
-<!--
-  Material Design Lite
-  Copyright 2015 Google Inc. All rights reserved.
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-      https://www.apache.org/licenses/LICENSE-2.0
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License
--->
 <html lang="ja">
   <head>
     <meta charset="UTF-8">
@@ -491,34 +534,13 @@ if (filter_has_var(INPUT_POST, 'account-delete-submit')) {
       <main class="mdl-layout__content">
         <section class="mdl-layout__tab-panel is-active" id="fixed-tab-1">
           <div class="page-content">
-            <ul class="mdl-list">
-              <li class="mdl-list__item">
-                <span class="mdl-list__item-primary-content">
-                  <i class="material-icons mdl-list__item-icon">star</i>
-                  お気に入り一覧
-                </span>
-              </li>
-            </ul>
+            <div class="sub-headline">お気に入り一覧</div>
             <div id="fav-table">
 <?php favTableGenerate($tstat); ?>
             </div>
-            <ul class="mdl-list">
-              <li class="mdl-list__item">
-                <span class="mdl-list__item-primary-content">
-                  <i class="material-icons mdl-list__item-icon">add_circle</i>
-                  お気に入り追加
-                </span>
-              </li>
-            </ul>
+            <div class="sub-headline">お気に入り追加</div>
 <?php favAddSelector($pdo, $tstat, $tname1, $tname2, $tname3, $tname4); ?>
-            <ul class="mdl-list">
-              <li class="mdl-list__item">
-                <span class="mdl-list__item-primary-content">
-                  <i class="material-icons mdl-list__item-icon">delete</i>
-                  お気に入り削除
-                </span>
-              </li>
-            </ul>
+            <div class="sub-headline">お気に入り削除</div>
 <?php favDelSelector($tstat); ?>
           </div>
         </section>
@@ -542,7 +564,11 @@ if (filter_has_var(INPUT_POST, 'account-delete-submit')) {
                   <i class="material-icons mdl-list__item-icon">account_circle</i>
                   <?php echo h($name) . " (" . h($mail) . ")"; ?>
                 </span>
-                <a href="signout.php" id="signout-link">サインアウト</a>
+                <form action="" method="POST">
+                  <button id="signout-link" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" type="submit" name="signout-submit">
+                    サインアウト
+                  </button>
+                </form>
               </li>
             </ul>
             
@@ -556,14 +582,21 @@ if (filter_has_var(INPUT_POST, 'account-delete-submit')) {
                   <div id="notification-toggle" class="setting-items">
                     <form action="" method="POST" name="ntfSwitchForm">
                       <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="ntfSwitcher">
-                        <input type="checkbox" class="mdl-switch__input" id="ntfSwitcher" name="ntfSwitcher" <?php echo getNtfAvailable($mail); ?> onclick="ntfToggle()" value="1">
+                        <input type="checkbox" class="mdl-switch__input" id="ntfSwitcher" name="ntfSwitcher" <?php getNtfAvailable($pdo, $mail); ?> onclick="ntfToggle()" value="1">
                         <span class="mdl-switch__label">メール通知</span>
                       </label>
                     </form>
                   </div>
                   <div id="ntf-term" class="setting-items">
-                    <div style="font-weight:bold;font-size:14px;margin:1em 0 .5em;">通知期間設定</div>
-                    <p><?php displayNtfTime($mail); ?></p>
+                    <div class="sub-headline">通知期間設定</div>
+                    <p>
+                      <?php displayNtfTime($pdo, $mail); ?>
+                      <b><span id="date-begin-display">(開始日)</span></b>から
+                      <b><span id="date-end-display">(終了日)</span></b> の
+                      <b><span id="time-begin-display">(開始時刻)</span></b>から
+                      <b><span id="time-end-display">(終了時刻)</span></b> の間に3分間隔で行われます。
+                    </p>
+                    
                     <form action="" method="POST" id="ntf-term-form">
                       <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored ntf-button" id="notification-date-begin">
                         開始日を設定

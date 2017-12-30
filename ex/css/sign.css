@@ -1,24 +1,29 @@
+@charset "utf-8";
+
 body {
   background-color: #8bc34a;
+  min-height: 0;
 }
 
 #sign-form-box {
-  position: relative;
-  top: 0;
-  left: 0;
-  width: 480px;
-  margin: 64px calc(50% - 240px - 18px);
-  padding: 36px 36px;
   background-color: #fff;
   box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+  left: 0;
+  margin: 64px auto;
+  max-width: 540px;
+  min-width: 320px;
+  padding: 36px 5%;
+  position: relative;
+  top: 0;
+  width: 80%;
 }
 
 #sign-top-logo {
+  left: 0;
+  margin: 0 auto;
   position: relative;
   top: 0;
-  left: 0;
-  width: 50%;
-  margin: 0 auto;
+  width: 60%;
 }
 
 #sign-top-logo img {
@@ -40,12 +45,12 @@ body {
 }
 
 .mdl-textfield__input {
-  position: relative;
-  left: 32px;
-  width: calc(100% - 32px);
-  top: 0;
   font-size: 18px;
+  left: 32px;
   line-height: 24px;
+  top: 0;
+  position: relative;
+  width: calc(100% - 32px);
 }
 
 .mdl-textfield.is-focused {
@@ -63,13 +68,13 @@ body {
   width: calc(100% - 32px);
 }
 
-#sign-submit {
+#signup-submit, #signin-submit {
+  font-size: 20px;
+  height: 56px;
   margin: 1em 0;
+  padding: 8px;
   position: relative;
   width: 100%;
-  font-size: 20px;
-  padding: 8px;
-  height: 56px;
 }
 
 #sign-notice p {
@@ -77,39 +82,40 @@ body {
 }
 
 p.err-msg {
+  color: red;
+  font-size: 12px;
+  left: 0;
+  margin: 0;
   position: relative;
   top: -4px;
-  left: 0;
-  color: red;
-  margin: 0;
-  font-size: 12px;
 }
 
+/* スマートフォン用 */
+
 @media screen and (max-width: 480px) {
+
   body {
     background-color: #fff;
+  }
+  
+  #sign-form-box {
+    box-shadow: none;
+    margin: 0;
+    max-width: 480px;
+    min-width: 0;
+    padding: 36px 5%;
+    width: 90%;
+  }
+  
+  #sign-top-logo {
+    width: 90%;
   }
   
   .mdl-textfield {
     width: 100%;
   }
-  #sign-form-box {
-    width: 90%;
-    margin: 0;
-    padding: 36px 5%;
-    box-shadow: none;
-  }
   
-  .mdl-textfield__input {
+  .mdl-textfield__input, .mdl-textfield__label, .is-focused .mdl-textfield__label  {
     width: calc(95% - 16px);
   }
-  
-  .mdl-textfield__label {
-    width: calc(95% - 16px);
-  }
-
-  .is-focused .mdl-textfield__label {
-    width: calc(95% - 16px);
-  }
-
 }

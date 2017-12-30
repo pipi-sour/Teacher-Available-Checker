@@ -1,22 +1,24 @@
 <?php
-require_once 'ex/ChromePhp.php';
 require_once 'ex/main.php';
 session_start();
 
 error_reporting(E_ALL & ~E_NOTICE);
 
+// トーストメッセージがあれば登録
 if(isset($_SESSION['MESSAGE'])) {
   $msg = $_SESSION['MESSAGE'];
   $_SESSION['MESSAGE'] = "";
 }
 
+// データベースに接続
 $pdo = connectDB();
 
+// サインインボタンが押されたら
 if (filter_has_var(INPUT_POST, 'signin-submit')) {
   $errFlag = 0;
   
-  $user_mail = inputPost('mailAddress');
-  $user_pass = inputPost('password');
+  $user_mail = h(inputPost('mailAddress'));
+  $user_pass = h(inputPost('password'));
   
   if (empty($user_mail)) {
     $mailErrMsg = 'メールアドレスが入力されていません。';
@@ -34,22 +36,18 @@ if (filter_has_var(INPUT_POST, 'signin-submit')) {
       
     if (!empty($res['mail'])) {
       if (password_verify($user_pass, $res['passwd'])) {
-        //セッションを情報を保持したまま置き換える
         session_regenerate_id(true);
         
         $_SESSION['NAME'] = $res['name'];
         $_SESSION['MAIL'] = $res['mail'];
         
-        header("Location: index.php");  // メイン画面へ遷移
-        exit();  // 処理終了
+        header("Location: index.php");
+        exit();
       } else {
-        // 認証失敗
-        $errMsg = 'ユーザーIDあるいはパスワードに誤りがあります。';
+        $errMsg = 'メールアドレスあるいはパスワードに誤りがあります。';
       }
     } else {
-      // 4. 認証成功なら、セッションIDを新規に発行する
-      // 該当データなし
-      $errMsg = 'ユーザーIDあるいはパスワードに誤りがあります。';
+      $errMsg = 'メールアドレスあるいはパスワードに誤りがあります。';
     }
   }
 }
@@ -75,7 +73,7 @@ if (filter_has_var(INPUT_POST, 'signin-submit')) {
               <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                 <i class="material-icons mdl-textfield__label__icon">email</i>
                 <input class="mdl-textfield__input" type="email" id="mailAddress" name="mailAddress" value="<?php echo $user_mail; ?>">
-                <label class="mdl-textfield__label" for="mailAddress">ID (メールアドレス)</label>
+                <label class="mdl-textfield__label" for="mailAddress">メールアドレス</label>
                 <span class="mdl-textfield__error">正しいメールアドレスを入力してください</span>
               </div>
               <p class="err-msg"><?php echo $mailErrMsg; ?></p>
@@ -85,7 +83,7 @@ if (filter_has_var(INPUT_POST, 'signin-submit')) {
                 <label class="mdl-textfield__label" for="password">パスワード</label>
               </div>
               <p class="err-msg"><?php echo $passErrMsg; ?></p>
-              <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" type="submit" id="sign-submit" name="signin-submit" value="submit">
+              <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" type="submit" id="signin-submit" name="signin-submit" value="submit">
                 サインイン
               </button>
             </fieldset>

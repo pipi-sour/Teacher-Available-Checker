@@ -4,6 +4,11 @@ PBLで制作する教員在室確認ツール。
 
 ## Updates
 
+### Ver 0.21 (12/30)
+
+- 一部デザイン変更
+- コメントやサブルーチン化など些細な変更
+
 ### Ver 0.20 (12/24)
 
 - メール通知設定
@@ -34,7 +39,7 @@ PBLで制作する教員在室確認ツール。
 - トーストを導入
   - アカウント情報の変更があった場合に右上にポップアップ表示される
 
-### Ver 0.1 (12/15)
+### Ver 0.10 (12/15)
 
 - お気に入り機能追加
   - プルダウンメニューから教員名を選択し追加・削除が可能
@@ -44,7 +49,7 @@ PBLで制作する教員在室確認ツール。
   - メールアドレスが被った場合は登録不可能
   - パスワードのハッシュ化を最新に変更
 
-### Ver 0.0
+### Ver 0.00
 - 赤外線センサ・CdSセルで得た在室「可能性」を校内ウェブサイトに表示
 - Google Material Designの採用
 - 教員一覧表示の画面でのテーブル並び替え
@@ -91,3 +96,15 @@ PBLで制作する教員在室確認ツール。
 - 回路班の人材不足
 - **制作時間**
   - これだけ時間をかけても、アンケートで魅力度1位を獲っても結局実用化はされないんですよ。
+
+## Screenshots
+
+![サインイン画面](https://raw.githubusercontent.com/st14d07/Teacher-Available-Checker/master/imgs/tac-signin.jpg)
+
+![サインアップ画面](https://raw.githubusercontent.com/st14d07/Teacher-Available-Checker/master/imgs/tac-signup.jpg)
+
+![お気に入り画面](https://raw.githubusercontent.com/st14d07/Teacher-Available-Checker/master/imgs/tac-favorite.jpg)
+
+![全教員画面](https://raw.githubusercontent.com/st14d07/Teacher-Available-Checker/master/imgs/tac-all.jpg)
+
+![アカウント管理画面](https://raw.githubusercontent.com/st14d07/Teacher-Available-Checker/master/imgs/tac-settings.jpg)

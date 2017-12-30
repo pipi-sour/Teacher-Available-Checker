@@ -13,5 +13,4 @@
     <script src="ex/mddtp/dist/js/moment.min.js"></script> <!-- MD Date&Time Picker -->
     <script src="ex/mddtp/dist/js/draggabilly.pkgd.min.js"></script> <!-- MD Date&Time Picker -->
     <script src="ex/mddtp/dist/js/mdDateTimePicker.min.js"></script> <!-- MD Date&Time Picker -->
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!--ViewPort-->

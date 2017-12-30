@@ -1,68 +1,62 @@
 <?php
-require_once 'ex/ChromePhp.php';
 require_once 'ex/main.php';
 session_start();
 
 error_reporting(E_ALL & ~E_NOTICE);
 
-if(isset($_SESSION['MESSAGE'])) {
-  $msg = $_SESSION['MESSAGE'];
-  $_SESSION['MESSAGE'] = "";
-}
-
+// データベースに接続
 $pdo = connectDB();
 
+// 各エラーメッセージを初期化
 $mailErrMsg = "";
 $nameErrMsg = "";
 $passErrMsg = "";
 $confErrMsg = "";
 
 // ログインボタンが押された場合
-if (filter_has_var(INPUT_POST, 'signup-submit')) {
+if (filter_has_var(INPUT_POST, 'signup_submit')) {
+  // エラーフラグを初期化
   $errFlag = 0;
   
-  // htmlspecialchars関数: HTMLにとって意味のある文字列（悪用される可能性あり）を無意味化する
-  $user_mail = h(inputPost('mailAddress'));
-  $user_name = h(inputPost('username'));
-  $user_pass = h(inputPost('password'));
-  $conf_pass = h(inputPost('conf_password'));
+  $mail = h(inputPost('signup_mail'));
+  $name = h(inputPost('signup_name'));
+  $pass = h(inputPost('signup_pass'));
+  $conf_pass = h(inputPost('signup_conf_pass'));
   
   $stmt_ch = $pdo->prepare("SELECT * FROM account");
   $stmt_ch->execute();
   $res = $stmt_ch->fetchAll(PDO::FETCH_ASSOC);
   
-  if (empty($user_mail)) {
+  if (empty($mail)) {
     $mailErrMsg = "メールアドレスが入力されていません。";
     $errFlag = 1;
   }
-  if (empty($user_name)) {
+  if (empty($name)) {
     $nameErrMsg = 'ユーザー名が入力されていません。';
     $errFlag = 1;
   }
-  if (empty($user_pass)) {
+  if (empty($pass)) {
     $passErrMsg = 'パスワードが入力されていません。';
     $errFlag = 1;
   }
-  if (empty($conf_pass)) {
+  if (empty($pass)) {
     $confErrMsg = '確認用パスワードが入力されていません。';
     $errFlag = 1;
-  } else if ($user_pass != $conf_pass) {
+  } else if ($pass != $conf_pass) {
     $confErrMsg = '2つのパスワードが一致しません。';
     $errFlag = 1;
   }
   
-  if(!mailDuplicationCheck($user_mail)) {
+  if(!mailDuplicationCheck($mail)) {
     $mailErrMsg = 'そのメールアドレスは既に登録されています。';
     $errFlag = 1;
   }
   
   if ($errFlag == 0) {
-    $pass_hash = password_hash($user_pass, PASSWORD_DEFAULT);
+    $pass_hash = password_hash($pass, PASSWORD_DEFAULT);
     
     $stmt_suc = $pdo->prepare("INSERT INTO account(mail, name, passwd) VALUES (?, ?, ?)");
-    $stmt_suc->execute(array($user_mail, $user_name, $pass_hash));
-    
-    //$sucMsg = '登録に成功しました。ログインしてください。';  // ログイン時に使用するIDとパスワード
+    $stmt_suc->execute(array($mail, $name, $pass_hash));
     
     $_SESSION['MESSAGE'] = "登録に成功しました。ログインしてください。";
     header("Location: signin.php");
@@ -88,33 +82,33 @@ if (filter_has_var(INPUT_POST, 'signup-submit')) {
             <fieldset>
               <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label ">
                 <i class="material-icons mdl-textfield__label__icon">email</i>
-                <input class="mdl-textfield__input" type="email" id="mailAddress" name="mailAddress" minlength="6" maxlength="255" value="<?php echo $user_mail; ?>">
-                <label class="mdl-textfield__label" for="mailAddress">ID (メールアドレス)</label>
+                <input class="mdl-textfield__input" id="signup-mail" name="signup_mail" type="email" minlength="6" maxlength="255" value="<?php echo h($user_mail); ?>">
+                <label class="mdl-textfield__label" for="signup-mail">メールアドレス</label>
                 <span class="mdl-textfield__error">正しいメールアドレスを入力してください</span>
               </div>
               <p class="err-msg"><?php echo h($mailErrMsg); ?></p>
               <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                 <i class="material-icons mdl-textfield__label__icon">person</i>
-                <input class="mdl-textfield__input" type="text" id="username" name="username" minlength="2" maxlength="16" value="<?php echo $user_name; ?>">
-                <label class="mdl-textfield__label" for="username">ユーザー名</label>
+                <input class="mdl-textfield__input" id="signup-name" name="signup_name" type="text" minlength="2" maxlength="16" value="<?php echo $user_name; ?>">
+                <label class="mdl-textfield__label" for="signup-name">ユーザー名</label>
                 <span class="mdl-textfield__error">ユーザー名は2文字以上16文字以内で入力してください</span>
               </div>
               <p class="err-msg"><?php echo $nameErrMsg; ?></p>
               <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                 <i class="material-icons mdl-textfield__label__icon">lock</i>
-                <input class="mdl-textfield__input" type="password" id="password" pattern="^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?\d)[a-zA-Z\d]{8,32}$" name="password" minlength="8" maxlength="32">
-                <label class="mdl-textfield__label" for="password">パスワード</label>
+                <input class="mdl-textfield__input" id="signup-pass" name="signup_pass" type="password" pattern="^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?\d)[a-zA-Z\d]{8,32}$" minlength="8" maxlength="32">
+                <label class="mdl-textfield__label" for="signup-pass">パスワード</label>
                 <span class="mdl-textfield__error">大文字・小文字・数字のすべてが含まれる必要があります</span>
               </div>
               <p class="err-msg"><?php echo $passErrMsg; ?></p>
               <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                 <i class="material-icons mdl-textfield__label__icon">lock</i>
-                <input class="mdl-textfield__input" type="password" id="conf_password" pattern="^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?\d)[a-zA-Z\d]{8,32}$" name="conf_password" minlength="8" maxlength="32">
-                <label class="mdl-textfield__label" for="conf_password">パスワード (確認)</label>
+                <input class="mdl-textfield__input" id="signup-conf-pass" name="signup_conf_pass" type="password" pattern="^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?\d)[a-zA-Z\d]{8,32}$" minlength="8" maxlength="32">
+                <label class="mdl-textfield__label" for="signup-conf-pass">パスワード (確認)</label>
                 <span class="mdl-textfield__error">大文字・小文字・数字のすべてが含まれる必要があります</span>
               </div>
               <p class="err-msg"><?php echo $confErrMsg; ?></p>
-              <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" type="submit" id="sign-submit" name="signup-submit" value="submit">
+              <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" id="signup-submit" name="signup_submit" type="submit">
                 登録
               </button>
             </fieldset>
