@@ -58,11 +58,9 @@ if (filter_has_var(INPUT_POST, 'signin-submit')) {
     <meta charset="UTF-8">
 <?php require_once 'ex/header.php'; ?>
     <link rel="stylesheet" href="ex/css/sign.css">
-    <script src="ex/js/sign.js"></script>
     <title>サインイン</title>
   </head>
   <body>
-<?php toaster($msg, $mode) ?>
     <main role="main">
       <div id="sign-form-box">
         <div id="sign-top-logo"><img src="ex/logo.png" alt="logo"></div>

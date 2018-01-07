@@ -32,7 +32,7 @@ if (filter_has_var(INPUT_POST, 'signup_submit')) {
     $errFlag = 1;
   }
   if (empty($name)) {
-    $nameErrMsg = 'ユーザー名が入力されていません。';
+    $nameErrMsg = 'ユーザ名が入力されていません。';
     $errFlag = 1;
   }
   if (empty($pass)) {
@@ -70,8 +70,7 @@ if (filter_has_var(INPUT_POST, 'signup_submit')) {
     <meta charset="UTF-8">
 <?php require_once 'ex/header.php'; ?>
     <link rel="stylesheet" href="ex/css/sign.css">
-    <script src="ex/js/sign.js"></script>
-    <title>新規登録</title>
+    <title>アカウントを作成</title>
   </head>
   <body>
     <main role="main">
@@ -90,8 +89,8 @@ if (filter_has_var(INPUT_POST, 'signup_submit')) {
               <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                 <i class="material-icons mdl-textfield__label__icon">person</i>
                 <input class="mdl-textfield__input" id="signup-name" name="signup_name" type="text" minlength="2" maxlength="16" value="<?php echo $user_name; ?>">
-                <label class="mdl-textfield__label" for="signup-name">ユーザー名</label>
-                <span class="mdl-textfield__error">ユーザー名は2文字以上16文字以内で入力してください</span>
+                <label class="mdl-textfield__label" for="signup-name">ユーザ名</label>
+                <span class="mdl-textfield__error">ユーザ名は2文字以上16文字以内で入力してください</span>
               </div>
               <p class="err-msg"><?php echo $nameErrMsg; ?></p>
               <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">

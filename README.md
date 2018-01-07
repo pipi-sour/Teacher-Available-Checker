@@ -4,6 +4,25 @@ PBLで制作する教員在室確認ツール。
 
 ## Updates
 
+### Ver 0.22 (18/01/07)
+
+- データベーステーブル "account" の構造を次のように変更
+  - [delete]notification\_date\_begin
+  - [delete]notification\_time\_begin
+  - [add]notification\_begin
+  - [delete]notification\_date\_end
+  - [delete]notification\_time\_end
+  - [add]notification\_end
+- 上記の変更によるindex.phpの通知スケジュール登録処理の改修
+- mail.phpを調整
+- 一部のJavaScriptライブラリをCDN化
+- レポート用素材を追加 （アクティビティ図、データベース図、ファイル相関図）
+  - ![アクティビティ図1](https://raw.githubusercontent.com/st14d07/Teacher-Available-Checker/master/imgs/activity-diagram1.png)
+  - ![アクティビティ図2](https://raw.githubusercontent.com/st14d07/Teacher-Available-Checker/master/imgs/activity-diagram2.png)
+  - ![ファイル相関図](https://raw.githubusercontent.com/st14d07/Teacher-Available-Checker/master/imgs/file-relationship.jpg)
+  - データベース図はChanges項に記載
+
+
 ### Ver 0.21 (12/30)
 
 - 一部デザイン変更
@@ -39,7 +58,7 @@ PBLで制作する教員在室確認ツール。
 - トーストを導入
   - アカウント情報の変更があった場合に右上にポップアップ表示される
 
-### Ver 0.10 (12/15)
+### Ver 0.1 (12/15)
 
 - お気に入り機能追加
   - プルダウンメニューから教員名を選択し追加・削除が可能
@@ -49,7 +68,7 @@ PBLで制作する教員在室確認ツール。
   - メールアドレスが被った場合は登録不可能
   - パスワードのハッシュ化を最新に変更
 
-### Ver 0.00
+### Ver 0.0
 - 赤外線センサ・CdSセルで得た在室「可能性」を校内ウェブサイトに表示
 - Google Material Designの採用
 - 教員一覧表示の画面でのテーブル並び替え
@@ -73,6 +92,9 @@ PBLで制作する教員在室確認ツール。
   - 最終的に「お気に入り（＋登録）」「全教員」「アカウント」となった
 
 ### データベース
+
+![データベース](https://raw.githubusercontent.com/st14d07/Teacher-Available-Checker/master/imgs/database.jpg)
+
 - テーブルを学科で分けていたものをすべて統一（そもそも分ける意味がなかった）
 - フィールド内容に学科と教員の英語名（ローマ字）を追加（検索用）
 - アカウントのDBフィールドは「メールアドレス」「ユーザー名（表示用）」「パスワード」「お気に入り教員1〜4」「通知オン・オフ」「通知期間」
@@ -93,6 +115,7 @@ PBLで制作する教員在室確認ツール。
 ## Problems, Known bugs
 - お気に入りを表示するテーブルで、データベースに教員を登録/削除しても反映されず、ページを再読み込みすると反映される
   - 12/17時点ではPHPによるオートリロード対応
+  - 解決できないので仕様とします。
 - 回路班の人材不足
 - **制作時間**
   - これだけ時間をかけても、アンケートで魅力度1位を獲っても結局実用化はされないんですよ。

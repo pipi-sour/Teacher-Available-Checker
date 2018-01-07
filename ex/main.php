@@ -1,4 +1,5 @@
 <?php
+
 // HTMLにエスケープ
 function h($text) {
   return htmlspecialchars($text, ENT_QUOTES);
@@ -6,7 +7,7 @@ function h($text) {
 
 // スーパーグローバル変数の直接使用を回避
 function inputPost($target) {
-  return (string)filter_input(INPUT_POST, $target, FILTER_SANITIZE_SPECIAL_CHARS);
+  return (string) filter_input(INPUT_POST, $target, FILTER_SANITIZE_SPECIAL_CHARS);
 }
 
 // データベースに接続
@@ -17,9 +18,9 @@ function connectDB() {
   $db_name = 'available';
   $db_type = 'mysql';
   $dsn = "$db_type: host=$db_host; dbname=$db_name; charset=utf8";
-  
+
   try {
-    $pdo = new PDO($dsn, $db_user, $db_pass, array(PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION));
+    $pdo = new PDO($dsn, $db_user, $db_pass, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
     $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
     return $pdo;
   } catch (PDOException $ex) {
@@ -29,17 +30,16 @@ function connectDB() {
 }
 
 // データベースの1つの値を取得
-function getDBValue($pdo, $field, $table, $mail) {
-  $sqlg = "SELECT $field FROM $table WHERE mail = '$mail'";
+function getDBValue($pdo, $field, $table, $cond, $mail) {
+  $sqlg = "SELECT $field FROM $table WHERE $cond = '$mail'";
   $stmtg = $pdo->query($sqlg);
   $res = $stmtg->fetch();
   return $res[$field];
 }
 
-
 // データベースの1つの値を更新
 function updateDBValue($pdo, $field, $table, $value, $mail) {
-  if($value == 'NULL') {
+  if ($value == 'NULL') {
     $sqlu = "UPDATE $table SET $field = NULL WHERE mail = '$mail'";
   } else {
     $sqlu = "UPDATE $table SET $field = '$value' WHERE mail = '$mail'";
@@ -61,7 +61,7 @@ function getTNameJP($tname) {
 
 // セッション情報からトーストメッセージとモードを取得しJavaScriptに書き出し
 function toaster($msg, $mode) {
-  if($msg != "") {
+  if ($msg != "") {
     print '
       <script>
         Command: toastr["' . $mode . '"]("' . $msg . '", "Teacher Available Checker");
@@ -71,18 +71,19 @@ function toaster($msg, $mode) {
 
 // データベース上に既にメールアドレスが登録されていないか調べる
 function mailDuplicationCheck($mail) {
-  $flag = 0; $i = 0;
+  $flag = 0;
+  $i = 0;
   $pdo = connectDB();
   $stmt = $pdo->prepare("SELECT * FROM account");
   $stmt->execute();
   $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
-  foreach($res as $i) {
-    if($mail == $i ['mail']) {
+  foreach ($res as $i) {
+    if ($mail == $i ['mail']) {
       $flag = 1;
       return false;
     }
   }
-  if($flag == 0) {
+  if ($flag == 0) {
     return true;
   }
 }
@@ -109,8 +110,6 @@ function signOut() {
   header("Location: signin.php");
 }
 
-
-/*
 function tmp() {
   date_default_timezone_set('Asia/Tokyo');
   $now_date = date("Y/m/d");
@@ -136,4 +135,3 @@ function tmp() {
     
   }
 }
-*/
