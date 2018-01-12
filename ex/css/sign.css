@@ -31,8 +31,8 @@ body {
 }
 
 .mdl-textfield__label__icon {
-  position: absolute;
   left: 0;
+  position: absolute;
   top: 24px;
 }
 
@@ -48,18 +48,14 @@ body {
   font-size: 18px;
   left: 32px;
   line-height: 24px;
-  top: 0;
   position: relative;
+  top: 0;
   width: calc(100% - 32px);
 }
 
-.mdl-textfield.is-focused {
-  width: 100%;
-}
-
 .mdl-textfield__label {
-  position: absolute;
   left: 32px;
+  position: absolute;
   top: 28px;
   width: 100%;
 }

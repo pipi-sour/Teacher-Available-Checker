@@ -2,7 +2,11 @@
 require_once 'ex/main.php';
 session_start();
 
-error_reporting(E_ALL & ~E_NOTICE);
+ini_set('display_errors', "On");
+ini_set('error_reporting', E_ALL & ~E_NOTICE);
+
+// データベースに接続
+$pdo = connectDB();
 
 // トーストメッセージを表示
 if (isset($_SESSION['MESSAGE'])) {
@@ -16,9 +20,6 @@ if (!isset($_SESSION['NAME'])) {
   header("Location: signin.php");
   exit;
 }
-
-// データベースに接続
-$pdo = connectDB();
 
 // セッション情報からメールアドレスとユーザ名を取得
 $mail = $_SESSION["MAIL"];
@@ -296,20 +297,15 @@ function displayNtfTime($pdo, $mail) {
 
   // 通知未設定（NULL）のとき
   if ($res['notification_begin'] == NULL) {
-    echo '現在メール通知期間は設定されていません。';
+    echo '現在メール通知スケジュールは設定されていません。';
   // 通知が設定されているとき
   } else {
-    echo '現在の設定: '
-    . date("Y月m月d日", strtotime($res['notification_begin'])) . '~'
-    . date("Y年m月d日", strtotime($res['notification_end'])) . ' '
-    . date("H時i分", strtotime($res['notification_begin'])) . '~'
-    . date("H時i分", strtotime($res['notification_end'])) . '<br>';
+    echo '現在の設定: ' . date("Y/m/d H:i", strtotime($res['notification_begin'])) . ' ~ ' . date("Y/m/d H:i", strtotime($res['notification_end']));
   }
-  echo '<br>メール通知は'
-    . '<b><span id="date-begin-display">(開始日)</span></b>から'
-    . '<b><span id="date-end-display">(終了日)</span></b> の '
-    . '<b><span id="time-begin-display">(開始時刻)</span></b>から'
-    . '<b><span id="time-end-display">(終了時刻)</span></b> の間に3分間隔で行われます。';
+  echo '<br>新しい設定: '
+    . '<b><span id="date-begin-display">____/__/__</span></b> <b><span id="time-begin-display">__:__</span></b> ~ '
+    . '<b><span id="date-end-display">____/__/__</span></b> <b><span id="time-end-display">__:__</span></b><br>'
+    . 'Raspberry Piは3分間隔でメールを送信します。<br>以下のボタンからスケジュールを設定し、「確定」をクリックするとスケジュールが設定されます。';
 }
 
 // 通知時間の設定変更が送信されたら
@@ -371,7 +367,7 @@ if (filter_has_var(INPUT_POST, 'signout-submit')) {
 if (filter_has_var(INPUT_POST, 'account-change-mail-submit')) {
 
   // 入力された新しいメールアドレス
-  $acc_mail = h(inputPost('account-new-mail'));
+  $acc_mail = inputPost('account-new-mail');
 
   // メールアドレスが空欄でないかどうか
   if (empty($acc_mail)) {
@@ -387,7 +383,6 @@ if (filter_has_var(INPUT_POST, 'account-change-mail-submit')) {
     $_SESSION['MESSAGE_MODE'] = "error";
     // 入力内容が正しければ
   } else {
-
     //更新
     updateDBValue($pdo, 'mail', 'account', $acc_mail, $mail);
 
@@ -406,7 +401,7 @@ if (filter_has_var(INPUT_POST, 'account-change-mail-submit')) {
 if (filter_has_var(INPUT_POST, 'account-change-name-submit')) {
 
   // 入力された新しいユーザ名
-  $acc_name = h(inputPost('account-new-name'));
+  $acc_name = inputPost('account-new-name');
 
   // ユーザ名が空欄でないかどうか
   if (empty($acc_name)) {
@@ -437,39 +432,40 @@ if (filter_has_var(INPUT_POST, 'account-change-name-submit')) {
 if (filter_has_var(INPUT_POST, 'account-change-pass-submit')) {
 
   // 入力された現在のパスワード、新しいパスワード、確認用の新しいパスワード
-  $acc_oldpass = h(inputPost('account-old-pass'));
-  $acc_newpass = h(inputPost('account-new-pass'));
-  $acc_confpass = h(inputPost('account-new-pass-conf'));
-
+  $acc_oldpass = inputPost('account-old-pass');
+  $acc_newpass = inputPost('account-new-pass');
+  $acc_confpass = inputPost('account-new-pass-conf');
+  
   // 入力内容が空欄でないかどうか
   if (empty($acc_oldpass) || empty($acc_newpass) || empty($acc_confpass)) {
     $_SESSION['MESSAGE'] = "入力内容に空欄があります。";
     $_SESSION['MESSAGE_MODE'] = "error";
+    header("Location: " . (string) filter_input(INPUT_SERVER, 'PHP_SELF'));
     // 現在のパスワードが間違っていないかどうか
-  } else if (!passVerify($mail, $acc_oldpass)) {
+  } else if (passVerify($mail, $acc_oldpass) == false) {
     $_SESSION['MESSAGE'] = "現在のパスワードに誤りがあります。";
     $_SESSION['MESSAGE_MODE'] = "error";
+    header("Location: " . (string) filter_input(INPUT_SERVER, 'PHP_SELF'));
     // 新しいパスワードと確認用パスワードが一致しているかどうか
   } else if ($acc_newpass != $acc_confpass) {
     $_SESSION['MESSAGE'] = "確認用のパスワードに誤りがあります。";
     $_SESSION['MESSAGE_MODE'] = "error";
+    header("Location: " . (string) filter_input(INPUT_SERVER, 'PHP_SELF'));
     // 現在のパスワードと新しいパスワードが異なっているかどうか
   } else if ($acc_oldpass == $acc_newpass) {
     $_SESSION['MESSAGE'] = "現在のパスワードと新しいパスワードが同じです。";
     $_SESSION['MESSAGE_MODE'] = "error";
+    header("Location: " . (string) filter_input(INPUT_SERVER, 'PHP_SELF'));
     // 正しく入力されていたら
   } else {
-
+    // パスワードをハッシュ化
+    $hash = password_hash($acc_newpass, PASSWORD_DEFAULT);
     // 更新
-    updateDBValue($pdo, 'passwd', 'account', $pass_hash, $mail);
-
+    updateDBValue($pdo, 'passwd', 'account', $hash, $mail);
     // サインアウト
     signOut();
-    exit();
+    header("Location: signin.php");
   }
-
-  // DBを更新するためページを再読み込み（正しく終了した場合はexit()で既に終了している）
-  header("Location: " . (string) filter_input(INPUT_SERVER, 'PHP_SELF'));
   exit();
 }
 
@@ -477,11 +473,11 @@ if (filter_has_var(INPUT_POST, 'account-change-pass-submit')) {
 if (filter_has_var(INPUT_POST, 'account-delete-submit')) {
 
   // パスワード
-  $acc_del = h(inputPost('account-delete-pass'));
+  $acc_del = inputPost('account-delete-pass');
   $res = getDBValue($pdo, 'passwd', 'account', 'mail', $mail);
 
   // パスワードが正しければ
-  if (password_verify($acc_del, $res['passwd'])) {
+  if (password_verify($acc_del, $res) == true) {
 
     // アカウントを削除
     $stmt_accDel2 = $pdo->prepare("DELETE FROM account WHERE mail = ?");
@@ -490,6 +486,7 @@ if (filter_has_var(INPUT_POST, 'account-delete-submit')) {
 
     // サインアウト
     signOut();
+    header("Location: signin.php");
   } else {
     $_SESSION['MESSAGE'] = "入力されたパスワードに誤りがあります。";
     $_SESSION['MESSAGE_MODE'] = "error";
@@ -502,25 +499,25 @@ if (filter_has_var(INPUT_POST, 'account-delete-submit')) {
 <html lang="ja">
   <head>
     <meta charset="UTF-8">
-    <?php require 'ex/header.php'; ?>
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css"> <!--Toastr.js-->
+    <?php require 'ex/head.php'; ?>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css"> <!-- toastr -->
     <link rel="stylesheet" href="ex/mddtp/css/mdDateTimePicker.min.css"> <!-- MD Date&Time Picker -->
     <link rel="stylesheet" href="ex/css/main.css">
-    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script> <!--Toastr.js-->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script> <!-- toastr -->
     <script src="ex/mddtp/js/moment.min.js"></script> <!-- MD Date&Time Picker -->
     <script src="ex/mddtp/js/draggabilly.pkgd.min.js"></script> <!-- MD Date&Time Picker -->
     <script src="ex/mddtp/js/mdDateTimePicker.min.js"></script> <!-- MD Date&Time Picker -->
     <script defer src="//cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script> <!--list.js-->
-    <script defer src="ex/js/defer.js"></script> <!--list.jsユーザ定義-->
-    <script src="ex/js/main.js"></script>
-    <title>教員在室確認</title>
+    <script defer src="ex/js/defer.js"></script> <!-- 遅延読み込み --> 
+    <script src="ex/js/main.js"></script> <!-- 通常読み込み -->
+    <title>在室確認の杜</title>
   </head>
   <body>
     <?php toaster($msg, $mode) ?>
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-tabs">
       <header class="mdl-layout__header mdl-layout__header--waterfall-hide-top mdl-layout__header--waterfall">
         <div class="mdl-layout__header-row">
-          <span class="mdl-layout-title">Teacher Available Checker</span>
+          <span class="mdl-layout-title">在室確認の杜</span>
           <div class="mdl-layout-spacer"></div>
         </div>
         <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
@@ -593,22 +590,22 @@ if (filter_has_var(INPUT_POST, 'account-delete-submit')) {
 
                     <form action="" method="POST" id="ntf-term-form">
                       <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored ntf-button" id="notification-date-begin">
-                        開始日を設定
+                        開始日付
                       </button>
                       <input type="text" id="date-begin-output" name="date-begin-output" style="display: none;">
 
+                      <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored ntf-button" id="notification-time-begin">
+                        開始時刻
+                      </button>
+                      <input type="text" id="time-begin-output" name="time-begin-output" style="display: none;">
+                      
                       <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored ntf-button" id="notification-date-end">
-                        終了日を設定
+                        終了日付
                       </button>
                       <input type="text" id="date-end-output" name="date-end-output" style="display: none;">
 
-                      <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored ntf-button" id="notification-time-begin">
-                        開始時刻を設定
-                      </button>
-                      <input type="text" id="time-begin-output" name="time-begin-output" style="display: none;">
-
                       <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored ntf-button" id="notification-time-end">
-                        終了時刻を設定
+                        終了時刻
                       </button>
                       <input type="text" id="time-end-output" name="time-end-output" style="display: none;">
 
@@ -668,25 +665,26 @@ if (filter_has_var(INPUT_POST, 'account-delete-submit')) {
                 </header>
                 <section class="mdlext-accordion__tabpanel" role="tabpanel">
                   <div class="account-form-container">
+                    <p>パスワードを変更すると、セキュリティを保つため自動的にサインアウトされます。<br>サインインページで新しいパスワードを入力し、再度サインインしてください。</p>
                     <form action="" method="POST">
                       <fieldset>
                         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                           <i class="material-icons mdl-textfield__label__icon">lock</i>
-                          <input class="mdl-textfield__input" type="password" pattern="^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?\d)[a-zA-Z\d]{8,32}$" id="account-old-pass" name="account-old-pass" minlength="8" maxlength="32">
+                          <input class="mdl-textfield__input" type="password" pattern="^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?\d)[a-zA-Z\d]{8,32}$" id="account-old-pass" name="account-old-pass">
                           <label class="mdl-textfield__label" for="account-old-pass">現在のパスワード</label>
-                          <span class="mdl-textfield__error">大文字・小文字・数字のすべてが含まれる必要があります</span>
+                          <span class="mdl-textfield__error">大文字・小文字・数字のすべてが含まれ8文字以上16文字以内の文字列である必要があります</span>
                         </div>
                         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                           <i class="material-icons mdl-textfield__label__icon">lock</i>
-                          <input class="mdl-textfield__input" type="password" pattern="^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?\d)[a-zA-Z\d]{8,32}$" id="account-new-pass" name="account-new-pass" minlength="8" maxlength="32">
+                          <input class="mdl-textfield__input" type="password" pattern="^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?\d)[a-zA-Z\d]{8,32}$" id="account-new-pass" name="account-new-pass">
                           <label class="mdl-textfield__label" for="account-new-pass">新しいパスワード</label>
-                          <span class="mdl-textfield__error">大文字・小文字・数字のすべてが含まれる必要があります</span>
+                          <span class="mdl-textfield__error">大文字・小文字・数字のすべてが含まれ8文字以上16文字以内の文字列である必要があります</span>
                         </div>
                         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                           <i class="material-icons mdl-textfield__label__icon">lock</i>
-                          <input class="mdl-textfield__input" type="password" pattern="^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?\d)[a-zA-Z\d]{8,32}$" id="account-new-pass-conf" name="account-new-pass-conf" minlength="8" maxlength="32">
+                          <input class="mdl-textfield__input" type="password" pattern="^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?\d)[a-zA-Z\d]{8,32}$" id="account-new-pass-conf" name="account-new-pass-conf">
                           <label class="mdl-textfield__label" for="account-new-pass-conf">新しいパスワード (確認用)</label>
-                          <span class="mdl-textfield__error">大文字・小文字・数字のすべてが含まれる必要があります</span>
+                          <span class="mdl-textfield__error">大文字・小文字・数字のすべてが含まれ8文字以上16文字以内の文字列である必要があります</span>
                         </div>
                         <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent submit-button" type="submit" name="account-change-pass-submit">
                           確定
@@ -707,9 +705,9 @@ if (filter_has_var(INPUT_POST, 'account-delete-submit')) {
                     <form action="" method="POST">
                       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                         <i class="material-icons mdl-textfield__label__icon">lock</i>
-                        <input class="mdl-textfield__input" type="password" name="account-delete-pass" id="account-delete-conf" pattern="^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?\d)[a-zA-Z\d]{8,32}$" minlength="8" maxlength="32">
+                        <input class="mdl-textfield__input" type="password" name="account-delete-pass" id="account-delete-conf" pattern="^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?\d)[a-zA-Z\d]{8,32}$">
                         <label class="mdl-textfield__label" for="account-delete-conf">パスワード</label>
-                        <span class="mdl-textfield__error">大文字・小文字・数字のすべてが含まれる必要があります</span>
+                        <span class="mdl-textfield__error">大文字・小文字・数字のすべてが含まれ8文字以上16文字以内の文字列である必要があります</span>
                       </div>
                       <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent submit-button" type="submit" name="account-delete-submit">
                         削除

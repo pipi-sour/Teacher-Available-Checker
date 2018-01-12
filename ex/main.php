@@ -12,9 +12,9 @@ function inputPost($target) {
 
 // データベースに接続
 function connectDB() {
-  $db_user = 'root';
-  $db_pass = 'root';
-  $db_host = 'localhost';
+  $db_user = 'pi';
+  $db_pass = 'raspberry';
+  $db_host = '172.16.206.206';
   $db_name = 'available';
   $db_type = 'mysql';
   $dsn = "$db_type: host=$db_host; dbname=$db_name; charset=utf8";
@@ -55,7 +55,7 @@ function getTNameJP($tname) {
   $stmt = $pdo->prepare('SELECT * FROM status WHERE name_en = ?');
   $stmt->bindValue(1, $tname);
   $stmt->execute();
-  $res = $stmt->fetch(PDO::FETCH_ASSOC);
+  $res = $stmt->fetch();
   return $res['name'];
 }
 
@@ -64,7 +64,7 @@ function toaster($msg, $mode) {
   if ($msg != "") {
     print '
       <script>
-        Command: toastr["' . $mode . '"]("' . $msg . '", "Teacher Available Checker");
+        Command: toastr["' . $mode . '"]("' . $msg . '", "在室確認の杜");
       </script>';
   }
 }
@@ -88,15 +88,12 @@ function mailDuplicationCheck($mail) {
   }
 }
 
-// パスワードが正しいか検証する
+// メールとパスワードが正しいか検証する
 function passVerify($mail, $pass) {
   $pdo = connectDB();
-  $stmt = $pdo->prepare('SELECT * FROM account WHERE mail = ?');
-  $stmt->bindValue(1, $mail);
-  $stmt->execute();
-  $res = $stmt->fetch(PDO::FETCH_ASSOC);
+  $res = getDBValue($pdo, 'passwd', 'account', 'mail', $mail);
 
-  if (password_verify($pass, $res['passwd'])) {
+  if (password_verify($pass, $res)) {
     return true;
   } else {
     return false;
@@ -107,31 +104,4 @@ function passVerify($mail, $pass) {
 function signOut() {
   $_SESSION = array();
   session_destroy();
-  header("Location: signin.php");
-}
-
-function tmp() {
-  date_default_timezone_set('Asia/Tokyo');
-  $now_date = date("Y/m/d");
-  $now_time = date("H:i");
-  $pdo = connectDB();
-  $stmt = $pdo->query('SELECT * FROM account');
-  $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
-  foreach($res as $i) {
-    echo date("Y/m/d") . "  ";
-    echo date("H:i") . "  ";
-    echo $i ['mail'] . "  ";
-    echo $i ['notification'] . "  ";
-    $ndb[i] = date("Y/m/d", strtotime($i ['notification_date_begin'])) . "  ";
-    $nde[i] = date("Y/m/d", strtotime($i ['notification_date_end'])) . "  ";
-    $ntb[i] = date("H:i", strtotime($i ['notification_time_begin'])) . "  ";
-    $nte[i] = date("H:i", strtotime($i ['notification_time_end'])) . "  ";
-    if($now_date >= $ndb[i] && $now_date <= $nde[i] && $now_time >= $ntb[i] && $now_time <= $nte[i]) {
-      echo "aaa";
-    } else {
-      echo "bbb";
-    }
-    echo "  <br> ";
-    
-  }
 }
