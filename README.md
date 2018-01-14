@@ -1,4 +1,4 @@
-# Teacher Available Checker
+# 在室確認の杜 - Teacher Available Management System
 
 PBLで制作する教員在室確認ツール。
 
